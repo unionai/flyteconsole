@@ -2,6 +2,7 @@ import { Admin } from 'flyteidl';
 import {
     defaultPaginationConfig,
     getAdminEntity,
+    postAdminEntity,
     RequestConfig
 } from 'models/AdminEntity';
 import {
@@ -17,10 +18,12 @@ import { launchPlanListTransformer } from './utils';
 /** Fetches a list of `LaunchPlan` records matching the provided `scope` */
 export const listLaunchPlans = (
     scope: IdentifierScope,
-    config?: RequestConfig
+    config?: RequestConfig,
+    host?: string
 ) =>
     getAdminEntity(
         {
+            host,
             path: makeIdentifierPath(endpointPrefixes.launchPlan, scope),
             messageType: Admin.LaunchPlanList,
             transform: launchPlanListTransformer
@@ -34,6 +37,23 @@ export const getLaunchPlan = (id: Identifier, config?: RequestConfig) =>
         {
             path: makeIdentifierPath(endpointPrefixes.launchPlan, id),
             messageType: Admin.Task
+        },
+        config
+    );
+
+export const createLaunchPlan = (launchPlan, config?: RequestConfig) =>
+    postAdminEntity<
+        Admin.ILaunchPlanCreateRequest,
+        Admin.LaunchPlanCreateResponse
+    >(
+        {
+            data: {
+                id: launchPlan.id,
+                spec: launchPlan.spec
+            },
+            path: endpointPrefixes.launchPlan,
+            requestMessageType: Admin.LaunchPlanCreateRequest,
+            responseMessageType: Admin.LaunchPlanCreateResponse
         },
         config
     );

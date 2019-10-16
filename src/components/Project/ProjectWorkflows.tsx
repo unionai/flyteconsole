@@ -7,12 +7,14 @@ import * as React from 'react';
 export interface ProjectWorkflowsProps {
     projectId: string;
     domainId: string;
+    host?: string;
 }
 
 /** A listing of the Workflows registered for a project */
 export const ProjectWorkflows: React.FC<ProjectWorkflowsProps> = ({
     domainId: domain,
-    projectId: project
+    projectId: project,
+    host: host
 }) => {
     const workflowIds = useWorkflowIds(
         { domain, project },
@@ -22,12 +24,16 @@ export const ProjectWorkflows: React.FC<ProjectWorkflowsProps> = ({
                 direction: SortDirection.ASCENDING,
                 key: workflowSortFields.name
             }
-        }
+        },
+        host
     );
 
     return (
         <WaitForData {...workflowIds}>
-            <SearchableWorkflowIdList workflowIds={workflowIds.value} />
+            <SearchableWorkflowIdList
+                workflowIds={workflowIds.value}
+                host={host}
+            />
         </WaitForData>
     );
 };

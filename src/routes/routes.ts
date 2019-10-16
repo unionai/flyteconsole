@@ -9,19 +9,37 @@ import {
 import { makeRoute } from './utils';
 
 /** Creates a path relative to a particular project */
-export const makeProjectBoundPath = (projectId: string, path: string = '') =>
-    makeRoute(
-        `/projects/${projectId}${
-            path.length ? ensureSlashPrefixed(path) : path
-        }`
-    );
+export const makeProjectBoundPath = (
+    projectId: string,
+    path: string = '',
+    host?: string
+) => {
+    let route = `/projects/${projectId}${
+        path.length ? ensureSlashPrefixed(path) : path
+    }`;
+    if (host) {
+        if (route.includes('?')) {
+            route = route.concat(`&host=${host}`);
+        } else {
+            route = route.concat(`?host=${host}`);
+        }
+    }
+    return makeRoute(route);
+};
 
 /** Creates a path relative to a particular project and domain. Paths should begin with a slash (/) */
 export const makeProjectDomainBoundPath = (
     projectId: string,
     domainId: string,
-    path: string = ''
-) => makeRoute(`/projects/${projectId}/domains/${domainId}${path}`);
+    path: string = '',
+    host?: string
+) => {
+    let route = `/projects/${projectId}/domains/${domainId}${path}`;
+    if (host) {
+        route = route.concat(`?host=${host}`);
+    }
+    return makeRoute(route);
+};
 
 export class Routes {
     static NotFound = {};
@@ -32,10 +50,11 @@ export class Routes {
         path: projectBasePath,
         sections: {
             workflows: {
-                makeUrl: (project: string, domain?: string) =>
+                makeUrl: (project: string, domain?: string, host?: string) =>
                     makeProjectBoundPath(
                         project,
-                        `/workflows${domain ? `?domain=${domain}` : ''}`
+                        `/workflows${domain ? `?domain=${domain}` : ''}`,
+                        host
                     ),
                 path: `${projectBasePath}/workflows`
             }
@@ -64,11 +83,17 @@ export class Routes {
 
     // Workflows
     static WorkflowDetails = {
-        makeUrl: (project: string, domain: string, workflowName: string) =>
+        makeUrl: (
+            project: string,
+            domain: string,
+            workflowName: string,
+            host?: string
+        ) =>
             makeProjectDomainBoundPath(
                 project,
                 domain,
-                `/workflows/${workflowName}`
+                `/workflows/${workflowName}`,
+                host
             ),
         path: `${projectDomainBasePath}/workflows/:workflowName`,
         Executions: {

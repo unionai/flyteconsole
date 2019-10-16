@@ -9,7 +9,8 @@ import { extractTaskTemplates } from './utils';
 
 /** A hook for fetching a Workflow */
 export function useWorkflow(
-    id: WorkflowId | null = null
+    id: WorkflowId | null = null,
+    host?: string
 ): FetchableData<Workflow> {
     const cache = useContext(CacheContext);
     const { getWorkflow } = useAPIContext();
@@ -18,7 +19,9 @@ export function useWorkflow(
         if (id === null) {
             throw new Error('workflow id missing');
         }
-        const workflow = await getWorkflow(id);
+        console.log('calling get workflow with');
+        console.log(host);
+        const workflow = await getWorkflow(id, undefined, host);
         const templates = extractTaskTemplates(workflow);
         cache.mergeArray(templates);
         return workflow;

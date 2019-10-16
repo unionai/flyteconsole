@@ -5,7 +5,7 @@ import DeviceHub from '@material-ui/icons/DeviceHub';
 import * as classnames from 'classnames';
 import { withRouteParams } from 'components/common';
 import { useCommonStyles } from 'components/common/styles';
-import { useProject, useProjects } from 'components/hooks';
+import { useProject, useProjects, useQueryState } from 'components/hooks';
 import { Project } from 'models';
 import * as React from 'react';
 import { matchPath, NavLink, NavLinkProps } from 'react-router-dom';
@@ -16,6 +16,7 @@ import { ProjectSelector } from './ProjectSelector';
 interface ProjectNavigationRouteParams {
     domainId?: string;
     projectId: string;
+    host?: string;
     section?: string;
 }
 
@@ -59,12 +60,17 @@ interface ProjectRoute extends Pick<NavLinkProps, 'isActive'> {
 const ProjectNavigationImpl: React.FC<ProjectNavigationRouteParams> = ({
     domainId,
     projectId,
-    section
+    section,
+    host
 }) => {
     const styles = useStyles();
     const commonStyles = useCommonStyles();
+    const { params, setQueryState } = useQueryState<{
+        domain: string;
+        host?: string;
+    }>();
     const project = useProject(projectId);
-    const projects = useProjects();
+    const projects = useProjects(params.host);
     const onProjectSelected = (project: Project) =>
         history.push(Routes.ProjectDetails.makeUrl(project.id, section));
 

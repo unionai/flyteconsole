@@ -7,6 +7,12 @@ import {
 } from 'models';
 import { SearchableSelectorOption } from './SearchableSelector';
 
+export interface ImportWorkflowFormProps {
+    workflowId: NamedEntityIdentifier;
+    host: string;
+    onClose(): void;
+}
+
 export interface LaunchWorkflowFormProps {
     workflowId: NamedEntityIdentifier;
     onClose(): void;

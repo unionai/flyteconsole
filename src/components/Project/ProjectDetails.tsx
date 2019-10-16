@@ -49,16 +49,21 @@ const ProjectWorkflowsByDomain: React.FC<{ project: Project }> = ({
                     />
                 ))}
             </Tabs>
-            <ProjectWorkflows projectId={project.id} domainId={domainId} />
+            <ProjectWorkflows
+                projectId={project.id}
+                domainId={domainId}
+                host={project.host}
+            />
         </>
     );
 };
 
 /** The view component for the Project landing page */
 export const ProjectDetailsContainer: React.FC<ProjectDetailsRouteParams> = ({
-    projectId
+    projectId,
+    query
 }) => {
-    const project = useProject(projectId);
+    const project = useProject(projectId, query.host);
     return (
         <WaitForData {...project}>
             {() => {

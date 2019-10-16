@@ -62,7 +62,8 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => {
                         component={ButtonLink}
                         to={Routes.ProjectDetails.sections.workflows.makeUrl(
                             project.id,
-                            domainId
+                            domainId,
+                            project.host
                         )}
                     >
                         {name}

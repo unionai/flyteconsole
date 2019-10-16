@@ -7,6 +7,8 @@ export interface Project extends Admin.IProject {
     id: string;
     /** One or more domains belonging to this project */
     domains: Domain[];
+    /** The host from which the Project was gathered */
+    host?: string;
 }
 
 export interface Domain extends Admin.IDomain {

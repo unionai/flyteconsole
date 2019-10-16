@@ -1,7 +1,8 @@
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import { env } from 'common/env';
 import { SearchableList, SearchResult, WaitForData } from 'components/common';
-import { useProjects } from 'components/hooks';
+import { FetchableData, useProjects } from 'components/hooks';
 import { Project } from 'models/Project';
 import * as React from 'react';
 import { ProjectList } from './ProjectList';
@@ -26,10 +27,9 @@ const renderProjectList = (results: SearchResult<Project>[]) => (
     <ProjectList projects={results.map(r => r.value)} />
 );
 
-/** The view component for the landing page of the application. */
-export const SelectProject: React.FC = () => {
+export const SelectProjectHost: React.FC = props => {
     const styles = useStyles();
-    const projects = useProjects();
+    const projects = useProjects(props.host);
     return (
         <WaitForData {...projects}>
             <div className={styles.container}>
@@ -49,5 +49,16 @@ export const SelectProject: React.FC = () => {
                 </section>
             </div>
         </WaitForData>
+    );
+};
+
+/** The view component for the landing page of the application. */
+export const SelectProject: React.FC = () => {
+    // TODO LOOP THROUGH REGISTRIES
+    return (
+        <>
+            <SelectProjectHost />
+            <SelectProjectHost host="registry" />
+        </>
     );
 };

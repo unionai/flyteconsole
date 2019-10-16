@@ -8,18 +8,22 @@ import { FetchableData } from './types';
 import { useFetchableData } from './useFetchableData';
 
 const fetchableKey = Symbol('ProjectsList');
-const makeProjectCacheKey = (id: string) => ({ id, collection: fetchableKey });
+const makeProjectCacheKey = (id: string, host?: string) => ({
+    id,
+    host,
+    collection: fetchableKey
+});
 
-const doFetchProjects = async (cache: ValueCache) => {
-    const projects = await listProjects();
+const doFetchProjects = async (cache: ValueCache, host?: string) => {
+    const projects = await listProjects(host);
     // Individually cache the projects so that we can retrieve them by id
     return projects.map(p =>
-        cache.mergeValue(makeProjectCacheKey(p.id), p)
+        cache.mergeValue(makeProjectCacheKey(p.id, host), p)
     ) as Project[];
 };
 
 /** A hook for fetching the list of available projects*/
-export function useProjects(): FetchableData<Project[]> {
+export function useProjects(host?: string): FetchableData<Project[]> {
     const cache = useContext(CacheContext);
 
     return useFetchableData<Project[], Symbol>(
@@ -27,19 +31,19 @@ export function useProjects(): FetchableData<Project[]> {
             debugName: 'Projects',
             useCache: true,
             defaultValue: [],
-            doFetch: () => doFetchProjects(cache)
+            doFetch: () => doFetchProjects(cache, host)
         },
         fetchableKey
     );
 }
 
 /** A hook for fetching a single Project */
-export function useProject(id: string): FetchableData<Project> {
+export function useProject(id: string, host?: string): FetchableData<Project> {
     const cache = useContext(CacheContext);
 
     const doFetch = async () => {
-        await doFetchProjects(cache);
-        const project = cache.get(makeProjectCacheKey(id)) as Project;
+        await doFetchProjects(cache, host);
+        const project = cache.get(makeProjectCacheKey(id, host)) as Project;
         if (!project) {
             throw new NotFoundError(id);
         }
@@ -53,6 +57,6 @@ export function useProject(id: string): FetchableData<Project> {
             debugName: 'Projects',
             defaultValue: {} as Project
         },
-        makeProjectCacheKey(id)
+        makeProjectCacheKey(id, host)
     );
 }

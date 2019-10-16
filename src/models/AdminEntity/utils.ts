@@ -6,6 +6,7 @@ import {
     ensureSlashPrefixed
 } from 'common/utils';
 
+import { registryURLs } from 'common/constants';
 import {
     AdminEntityTransformer,
     DecodableType,
@@ -16,8 +17,12 @@ import {
 const debug = createDebugLogger('adminEntity');
 
 /** Converts a path into a full Admin API url */
-export function adminApiUrl(url: string) {
+export function adminApiUrl(url: string, host?: string) {
     const finalUrl = ensureSlashPrefixed(url);
+    if (host) {
+        const endpoint = registryURLs[host];
+        return createCorsProxyURL(`${endpoint}/api/v1${finalUrl}`);
+    }
     if (env.ADMIN_API_URL) {
         return createCorsProxyURL(`${env.ADMIN_API_URL}/api/v1${finalUrl}`);
     }

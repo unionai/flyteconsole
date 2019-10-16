@@ -26,7 +26,8 @@ interface ListIdentifiersConfig {
  */
 export const listIdentifiers = (
     { type, scope }: ListIdentifiersConfig,
-    requestConfig?: RequestConfig
+    requestConfig?: RequestConfig,
+    host?: string
 ) => {
     const prefix = identifierPrefixes[type];
     const path = scope ? makeIdentifierPath(prefix, scope) : prefix;
@@ -36,6 +37,7 @@ export const listIdentifiers = (
         PaginatedEntityResponse<NamedEntityIdentifier>
     >(
         {
+            host,
             path,
             messageType: Admin.NamedEntityIdentifierList
         },

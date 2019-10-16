@@ -24,7 +24,8 @@ async function request(
     /** API endpoint to use, should not include protocol/host/prefix */
     endpoint: string,
     /** Admin API options to use for the request */
-    config: RequestConfig = {}
+    config: RequestConfig = {},
+    host?: string
 ) {
     const options: AxiosRequestConfig = {
         method,
@@ -43,7 +44,7 @@ async function request(
 
     const finalOptions = {
         ...options,
-        url: adminApiUrl(endpoint),
+        url: adminApiUrl(endpoint, host),
         withCredentials: true
     };
 
@@ -89,6 +90,7 @@ export interface GetEntityParams<T, TransformedType> {
     path: string;
     messageType: DecodableType<T>;
     transform?: AdminEntityTransformer<T, TransformedType>;
+    host?: string;
 }
 
 function identityTransformer(msg: any) {
@@ -98,6 +100,7 @@ function identityTransformer(msg: any) {
 /** GETs an entity by path and decodes/transforms it using provided functions */
 export async function getAdminEntity<ResponseType, TransformedType>(
     {
+        host,
         path,
         messageType,
         transform = identityTransformer
@@ -105,7 +108,7 @@ export async function getAdminEntity<ResponseType, TransformedType>(
     config?: RequestConfig
 ): Promise<TransformedType> {
     try {
-        const data: ArrayBuffer = await request('get', path, config);
+        const data: ArrayBuffer = await request('get', path, config, host);
         const decoded = decodeProtoResponse(data, messageType);
         logProtoResponse(path, decoded);
         return transform(decoded) as TransformedType;
@@ -142,6 +145,9 @@ export async function postAdminEntity<
     config?: RequestConfig
 ): Promise<TransformedType> {
     try {
+        console.log(data);
+        console.log('data');
+        console.log(path);
         const body = encodeProtoPayload(data, requestMessageType);
         const finalConfig = { ...config, data: body };
         const responseData: ArrayBuffer = await request(

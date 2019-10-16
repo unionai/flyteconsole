@@ -50,6 +50,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 interface SearchableWorkflowId extends NamedEntityIdentifier {
     id: string;
+    host?: string;
 }
 
 const workflowIdKey = ({ domain, name, project }: NamedEntityIdentifier) =>
@@ -64,7 +65,7 @@ const NoResults: React.FC = () => (
 interface SearchResultsProps {
     results: SearchResult<SearchableWorkflowId>[];
 }
-const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
+const SearchResults: React.FC<SearchResultsProps> = ({ results, host }) => {
     const commonStyles = useCommonStyles();
     const styles = useStyles();
     return results.length === 0 ? (
@@ -78,7 +79,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({ results }) => {
                     to={Routes.WorkflowDetails.makeUrl(
                         value.project,
                         value.domain,
-                        value.name
+                        value.name,
+                        host
                     )}
                 >
                     <div className={styles.searchResult}>
@@ -99,7 +101,7 @@ export interface SearchableWorkflowIdListProps {
  */
 export const SearchableWorkflowIdList: React.FC<
     SearchableWorkflowIdListProps
-> = ({ workflowIds }) => {
+> = ({ workflowIds, host }) => {
     const styles = useStyles();
     const searchValues = workflowIds.map(workflowId => ({
         ...workflowId,
@@ -107,7 +109,7 @@ export const SearchableWorkflowIdList: React.FC<
     }));
 
     const renderItems = (results: SearchResult<SearchableWorkflowId>[]) => (
-        <SearchResults results={results} />
+        <SearchResults results={results} host={host} />
     );
 
     return (

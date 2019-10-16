@@ -3,6 +3,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import { contentMarginGridUnits } from 'common/layout';
 import { WaitForData, withRouteParams } from 'components/common';
 import { useProject } from 'components/hooks';
+import { ImportWorkflowForm } from 'components/Launch/LaunchWorkflowForm/ImportWorkflowForm';
 import { LaunchWorkflowForm } from 'components/Launch/LaunchWorkflowForm/LaunchWorkflowForm';
 import * as React from 'react';
 import { WorkflowDescription } from './WorkflowDescription';
@@ -44,8 +45,11 @@ export type WorkflowDetailsProps = WorkflowDetailsRouteParams;
 export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
     projectId,
     domainId,
-    workflowName
+    workflowName,
+    query
 }) => {
+    console.log('query');
+    console.log(query);
     const project = useProject(projectId);
     const styles = useStyles();
     const [showLaunchForm, setShowLaunchForm] = React.useState(false);
@@ -57,6 +61,37 @@ export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
         domain: domainId,
         name: workflowName
     };
+    if (query.host) {
+        return (
+            <>
+                <WaitForData {...project}>
+                    <WorkflowDetailsHeader
+                        project={project.value}
+                        domainId={domainId}
+                        workflowName={workflowName}
+                        onClickLaunch={onLaunch}
+                    />
+                    <div className={styles.metadataContainer}>
+                        <div className={styles.descriptionContainer}>
+                            <WorkflowDescription descriptionString="" />
+                        </div>
+                    </div>
+                    <Dialog
+                        scroll="paper"
+                        maxWidth="sm"
+                        fullWidth={true}
+                        open={showLaunchForm}
+                    >
+                        <ImportWorkflowForm
+                            onClose={onCancelLaunch}
+                            workflowId={workflowId}
+                            host={query.host}
+                        />
+                    </Dialog>
+                </WaitForData>
+            </>
+        );
+    }
     return (
         <>
             <WaitForData {...project}>

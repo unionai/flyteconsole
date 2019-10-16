@@ -9,23 +9,33 @@ import {
 import { usePagination } from './usePagination';
 
 /** A hook for fetching a paginated list of workflows */
-export function useWorkflows(scope: IdentifierScope, config: RequestConfig) {
+export function useWorkflows(
+    scope: IdentifierScope,
+    config: RequestConfig,
+    host?: string
+) {
     const { listWorkflows } = useAPIContext();
     return usePagination<Workflow, IdentifierScope>(
         { ...config, cacheItems: true, fetchArg: scope },
-        listWorkflows
+        listWorkflows,
+        host
     );
 }
 
 /** A hook for fetching a paginated list of workflow ids */
-export function useWorkflowIds(scope: IdentifierScope, config: RequestConfig) {
+export function useWorkflowIds(
+    scope: IdentifierScope,
+    config: RequestConfig,
+    host?: string
+) {
     const { listIdentifiers } = useAPIContext();
     return usePagination<NamedEntityIdentifier, IdentifierScope>(
         { ...config, fetchArg: scope },
         (scope, requestConfig) =>
             listIdentifiers(
                 { scope, type: ResourceType.WORKFLOW },
-                requestConfig
+                requestConfig,
+                host
             )
     );
 }

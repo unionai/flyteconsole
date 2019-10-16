@@ -176,8 +176,6 @@ function useLaunchPlansForWorkflow(
                     return Promise.reject('No workflowId specified');
                 }
                 const { project, domain, name, version } = workflowId;
-                console.log('IN useFetch');
-                console.log(host);
                 const { entities } = await listLaunchPlans(
                     { project, domain },
                     // TODO: Only active?
@@ -195,7 +193,8 @@ function useLaunchPlansForWorkflow(
                             }
                         ],
                         limit: 10
-                    }
+                    },
+                    host
                 );
                 return entities;
             }
@@ -207,11 +206,17 @@ function useLaunchPlansForWorkflow(
 /** Contains all of the form state for a LaunchWorkflowForm, including input
  * definitions, current input values, and errors.
  */
-export function useLaunchWorkflowFormState({
+export function useImportWorkflowFormState({
     onClose,
-    workflowId
-}: LaunchWorkflowFormProps): LaunchWorkflowFormState {
-    const { createWorkflowExecution } = useAPIContext();
+    workflowId,
+    host
+}: ImportWorkflowFormProps): LaunchWorkflowFormState {
+    const {
+        registerProject,
+        createTask,
+        createWorkflow,
+        createLaunchPlan
+    } = useAPIContext();
     const workflows = useWorkflows(
         workflowId,
         {
@@ -231,7 +236,7 @@ export function useLaunchWorkflowFormState({
 
     // We have to do a single item get once a workflow is selected so that we
     // receive the full workflow spec
-    const workflow = useWorkflow(selectedWorkflowId);
+    const workflow = useWorkflow(selectedWorkflowId, host);
     const launchPlans = useLaunchPlansForWorkflow(selectedWorkflowId, host);
     const launchPlanSelectorOptions = useLaunchPlanSelectorOptions(
         launchPlans.value
@@ -260,18 +265,40 @@ export function useLaunchWorkflowFormState({
         setWorkflow(newWorkflow);
     };
 
+    //  FIXME
+    // this is actually not launching a workflow
     const launchWorkflow = async () => {
+        const workflowTemplate =
+            workflow.value.closure.compiledWorkflow.primary.template;
+        const tasks = workflow.value.closure.compiledWorkflow.tasks;
+        const launchPlan = selectedLaunchPlan;
+        console.log(workflow);
+        console.log('HERE ARE THE TASKS TO COPY');
+        console.log(workflow.value.closure.compiledWorkflow.tasks);
+        console.log('HERE IS THE WORKFLOW TO COPY');
+        console.log(workflow.value.closure.compiledWorkflow.primary.template);
+        console.log('HERE THE LAUNCH PLAN TO COPY');
+        console.log(selectedLaunchPlan);
         if (!launchPlanData) {
             throw new Error('Attempting to launch with no LaunchPlan');
         }
         const launchPlanId = launchPlanData.id;
         const { domain, project } = workflowId;
-        const response = await createWorkflowExecution({
-            domain,
-            launchPlanId,
-            project,
-            inputs: convertFormInputsToLiteralMap(inputs)
-        });
+        console.log('creating wit');
+        const taskZero = tasks[0];
+        console.log(taskZero.template);
+        const projectResponse = await registerProject(
+            taskZero.template.id.project
+        );
+        const taskResponse = await createTask(taskZero.template);
+        // shift off the start and end node :(
+        workflowTemplate.nodes.shift();
+        workflowTemplate.nodes.shift();
+        const workflowResponse = await createWorkflow(workflowTemplate);
+        const launchPlanSpec = selectedLaunchPlan.data;
+        console.log('THE SPEC');
+        console.log(launchPlanSpec);
+        const response = await createLaunchPlan(launchPlanSpec);
         const newExecutionId = response.id as WorkflowExecutionIdentifier;
         if (!newExecutionId) {
             throw new Error('API Response did not include new execution id');

@@ -1,4 +1,6 @@
+import * as queryString from 'query-string';
 import * as React from 'react';
+import { useParams } from 'react-router';
 import { RouteComponentProps } from 'react-router-dom';
 
 // Wraps a component which expects route params specified by the interface
@@ -7,7 +9,11 @@ import { RouteComponentProps } from 'react-router-dom';
 export function withRouteParams<ParamsType>(
     Component: React.ComponentType<ParamsType>
 ): React.FunctionComponent<RouteComponentProps<ParamsType>> {
-    return ({ match }) => {
+    return ({ match, location }) => {
+        match.params.query = {};
+        if (location.search) {
+            match.params.query = queryString.parse(location.search);
+        }
         return <Component {...match.params} />;
     };
 }

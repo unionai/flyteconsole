@@ -30,7 +30,8 @@ export interface PaginationConfig<FetchArgType> extends RequestConfig {
  */
 export function usePagination<T, FetchArgType>(
     config: PaginationConfig<FetchArgType>,
-    doFetch: PaginatedFetchFn<T, FetchArgType>
+    doFetch: PaginatedFetchFn<T, FetchArgType>,
+    host?: string
 ): PaginatedFetchableData<T> {
     const { cacheItems = false, debugName } = config;
     const cacheKey = getCacheKey(config);
@@ -61,7 +62,8 @@ export function usePagination<T, FetchArgType>(
 
         const { entities, token: newToken } = await doFetch(
             fetchArg,
-            requestConfig
+            requestConfig,
+            host
         );
         const values = cacheItems ? cache.mergeArray(entities) : entities;
 

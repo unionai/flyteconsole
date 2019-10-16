@@ -2,6 +2,7 @@ import { Admin } from 'flyteidl';
 import {
     defaultPaginationConfig,
     getAdminEntity,
+    postAdminEntity,
     RequestConfig
 } from 'models/AdminEntity';
 import {
@@ -31,6 +32,22 @@ export const getTask = (id: Identifier, config?: RequestConfig) =>
         {
             path: makeIdentifierPath(endpointPrefixes.task, id),
             messageType: Admin.Task
+        },
+        config
+    );
+
+export const createTask = (taskTemplate, config?: RequestConfig) =>
+    postAdminEntity<Admin.ITaskCreateRequest, Admin.TaskCreateResponse>(
+        {
+            data: {
+                id: taskTemplate.id,
+                spec: {
+                    template: taskTemplate
+                }
+            },
+            path: endpointPrefixes.task,
+            requestMessageType: Admin.TaskCreateRequest,
+            responseMessageType: Admin.TaskCreateResponse
         },
         config
     );
