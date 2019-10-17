@@ -65,6 +65,8 @@ const ProjectNavigationImpl: React.FC<ProjectNavigationRouteParams> = ({
 }) => {
     const styles = useStyles();
     const commonStyles = useCommonStyles();
+    // TODO, we might not need the question mark on host here.
+    // looks like useQueryState considers it a Partial
     const { params, setQueryState } = useQueryState<{
         domain: string;
         host?: string;

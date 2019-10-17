@@ -5,4 +5,6 @@ if (baseUrl.length && baseUrl[0] !== '/') {
     baseUrl = `/${baseUrl}`;
 }
 
-export const makeRoute = (path: string) => `${baseUrl}${path}`;
+export const makeRoute = (path: string) => {
+    return `${baseUrl}${path}`;
+};

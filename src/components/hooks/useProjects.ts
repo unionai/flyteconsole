@@ -8,6 +8,10 @@ import { FetchableData } from './types';
 import { useFetchableData } from './useFetchableData';
 
 const fetchableKey = Symbol('ProjectsList');
+const makeProjectsCacheKey = (host?: string) => ({
+    host,
+    collection: fetchableKey
+});
 const makeProjectCacheKey = (id: string, host?: string) => ({
     id,
     host,
@@ -29,11 +33,11 @@ export function useProjects(host?: string): FetchableData<Project[]> {
     return useFetchableData<Project[], Symbol>(
         {
             debugName: 'Projects',
-            useCache: true,
+            useCache: false,
             defaultValue: [],
             doFetch: () => doFetchProjects(cache, host)
         },
-        fetchableKey
+        makeProjectsCacheKey(host)
     );
 }
 

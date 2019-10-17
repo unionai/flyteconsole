@@ -1,28 +1,27 @@
 import { workflowTabIds } from 'common/constants';
 import { ensureSlashPrefixed } from 'common/utils';
 import { TaskExecutionIdentifier, WorkflowExecutionIdentifier } from 'models';
+import * as queryString from 'query-string';
 import {
     projectBasePath,
     projectDomainBasePath,
     taskExecutionPath
 } from './constants';
+import { Query } from './types';
 import { makeRoute } from './utils';
 
 /** Creates a path relative to a particular project */
 export const makeProjectBoundPath = (
     projectId: string,
     path: string = '',
-    host?: string
+    queryParams: Query = {}
 ) => {
     let route = `/projects/${projectId}${
         path.length ? ensureSlashPrefixed(path) : path
     }`;
-    if (host) {
-        if (route.includes('?')) {
-            route = route.concat(`&host=${host}`);
-        } else {
-            route = route.concat(`?host=${host}`);
-        }
+    if (queryParams) {
+        const qString = queryString.stringify(queryParams);
+        route = route.concat('?', qString);
     }
     return makeRoute(route);
 };
@@ -32,11 +31,12 @@ export const makeProjectDomainBoundPath = (
     projectId: string,
     domainId: string,
     path: string = '',
-    host?: string
+    queryParams: Query = {}
 ) => {
     let route = `/projects/${projectId}/domains/${domainId}${path}`;
-    if (host) {
-        route = route.concat(`?host=${host}`);
+    if (queryParams) {
+        const qString = queryString.stringify(queryParams);
+        route = route.concat('?', qString);
     }
     return makeRoute(route);
 };
@@ -50,12 +50,20 @@ export class Routes {
         path: projectBasePath,
         sections: {
             workflows: {
-                makeUrl: (project: string, domain?: string, host?: string) =>
-                    makeProjectBoundPath(
+                makeUrl: (project: string, domain?: string, host?: string) => {
+                    const queryParams: Query = {};
+                    if (domain) {
+                        queryParams['domain'] = domain;
+                    }
+                    if (host) {
+                        queryParams['host'] = host;
+                    }
+                    return makeProjectBoundPath(
                         project,
-                        `/workflows${domain ? `?domain=${domain}` : ''}`,
-                        host
-                    ),
+                        `/workflows`,
+                        queryParams
+                    );
+                },
                 path: `${projectBasePath}/workflows`
             }
         }
@@ -88,13 +96,18 @@ export class Routes {
             domain: string,
             workflowName: string,
             host?: string
-        ) =>
-            makeProjectDomainBoundPath(
+        ) => {
+            const queryParams: Query = {};
+            if (host) {
+                queryParams['host'] = host;
+            }
+            return makeProjectDomainBoundPath(
                 project,
                 domain,
                 `/workflows/${workflowName}`,
-                host
-            ),
+                queryParams
+            );
+        },
         path: `${projectDomainBasePath}/workflows/:workflowName`,
         Executions: {
             makeUrl: (project: string, domain: string, workflowName: string) =>

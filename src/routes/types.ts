@@ -3,6 +3,10 @@ export interface EnvironmentMatchParams {
     project?: string;
 }
 
+export interface Query {
+    [key: string]: string;
+}
+
 export interface Route {
     path?: string;
     makeUrl?: (...parts: string[]) => string;

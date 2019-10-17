@@ -32,6 +32,7 @@ export const SelectProjectHost: React.FC = props => {
     const projects = useProjects(props.host);
     return (
         <WaitForData {...projects}>
+            <h1>{props.host}</h1>
             <div className={styles.container}>
                 <h1>Welcome to Flyte</h1>
                 <Typography variant="h6">

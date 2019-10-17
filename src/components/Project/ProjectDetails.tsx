@@ -24,15 +24,16 @@ const ProjectWorkflowsByDomain: React.FC<{ project: Project }> = ({
     project
 }) => {
     const styles = useStyles();
-    const { params, setQueryState } = useQueryState<{ domain: string }>();
+    const { params, setQueryStateValue } = useQueryState<{
+        domain: string;
+        host: string;
+    }>();
     if (project.domains.length === 0) {
         throw new Error('No domains exist for this project');
     }
     const domainId = params.domain || project.domains[0].id;
     const handleTabChange = (event: React.ChangeEvent<{}>, tabId: string) =>
-        setQueryState({
-            domain: tabId
-        });
+        setQueryStateValue('domain', tabId);
     return (
         <>
             <Tabs
