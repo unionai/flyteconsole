@@ -1,13 +1,25 @@
+import { Tab, Tabs } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import { env } from 'common/env';
 import { SearchableList, SearchResult, WaitForData } from 'components/common';
-import { FetchableData, useProjects } from 'components/hooks';
+import {
+    FetchableData,
+    useProject,
+    useProjects,
+    useQueryState
+} from 'components/hooks';
 import { Project } from 'models/Project';
 import * as React from 'react';
 import { ProjectList } from './ProjectList';
 
 const useStyles = makeStyles((theme: Theme) => ({
+    tab: {
+        textTransform: 'capitalize'
+    },
+    tabs: {
+        borderBottom: `1px solid ${theme.palette.divider}`
+    },
     container: {
         textAlign: 'center'
     },
@@ -32,7 +44,6 @@ export const SelectProjectHost: React.FC = props => {
     const projects = useProjects(props.host);
     return (
         <WaitForData {...projects}>
-            <h1>{props.host}</h1>
             <div className={styles.container}>
                 <h1>Welcome to Flyte</h1>
                 <Typography variant="h6">
@@ -56,10 +67,31 @@ export const SelectProjectHost: React.FC = props => {
 /** The view component for the landing page of the application. */
 export const SelectProject: React.FC = () => {
     // TODO LOOP THROUGH REGISTRIES
+    const { params, setQueryStateValue } = useQueryState<{
+        domain: string;
+        host: string;
+    }>();
+    const handleTabChange = (event: React.ChangeEvent<{}>, tabId: string) =>
+        setQueryStateValue('host', tabId);
+    const registries = ['', 'registry'];
+    const styles = useStyles();
     return (
         <>
-            <SelectProjectHost />
-            <SelectProjectHost host="registry" />
+            <Tabs
+                className={styles.tabs}
+                onChange={handleTabChange}
+                value={params.host}
+            >
+                {registries.map(id => (
+                    <Tab
+                        className={styles.tab}
+                        key={id}
+                        value={id}
+                        label={id}
+                    />
+                ))}
+            </Tabs>
+            <SelectProjectHost host={params.host} />
         </>
     );
 };
