@@ -6,6 +6,7 @@ export const workflowTabIds = {
 };
 
 export const registryURLs = {
+    main: '',
     registry: 'http://localhost:30082'
 };
 

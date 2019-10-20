@@ -53,8 +53,6 @@ export const WorkflowDetailsHeader: React.FC<WorkflowDetailsHeaderProps> = ({
     const commonStyles = useCommonStyles();
     const domain = getProjectDomain(project, domainId);
     const headerText = `${domain.name} / ${workflowName}`;
-    console.log('POROING');
-    console.log(project);
     return (
         <div className={styles.headerContainer}>
             <div

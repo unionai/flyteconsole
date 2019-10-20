@@ -144,19 +144,12 @@ export function useImportWorkflowFormState({
     };
 
     const importWorkflow = async () => {
-        console.log(workflow);
         const compiledWorkflow = workflow.value.closure.compiledWorkflow;
         const workflowTemplate = compiledWorkflow.primary.template;
         const taskTemplates = compiledWorkflow.tasks.map(
             value => value.template
         );
         const launchPlanSpec = launchPlanData;
-        console.log('HERE ARE THE TASKS TO COPY');
-        console.log(taskTemplates);
-        console.log('HERE IS THE WORKFLOW TO COPY');
-        console.log(workflowTemplate);
-        console.log('HERE THE LAUNCH PLAN TO COPY');
-        console.log(selectedLaunchPlan);
         if (!launchPlanData) {
             throw new Error('Attempting to launch with no LaunchPlan');
         }
@@ -198,9 +191,6 @@ export function useImportWorkflowFormState({
             }
         }
 
-        console.log('THE SPEC');
-        console.log(launchPlanSpec);
-
         // register LaunchPlan
         try {
             await createLaunchPlan(launchPlanSpec);
@@ -216,7 +206,6 @@ export function useImportWorkflowFormState({
         history.push(
             Routes.WorkflowDetails.makeUrl(project, domain, workflowName)
         );
-        console.log('TODONE');
     };
 
     const submissionState = useFetchableData<WorkflowExecutionIdentifier>({

@@ -19,8 +19,6 @@ export function useWorkflow(
         if (id === null) {
             throw new Error('workflow id missing');
         }
-        console.log('calling get workflow with');
-        console.log(host);
         const workflow = await getWorkflow(id, undefined, host);
         const templates = extractTaskTemplates(workflow);
         cache.mergeArray(templates);

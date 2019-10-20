@@ -145,9 +145,6 @@ export async function postAdminEntity<
     config?: RequestConfig
 ): Promise<TransformedType> {
     try {
-        console.log(data);
-        console.log('data');
-        console.log(path);
         const body = encodeProtoPayload(data, requestMessageType);
         const finalConfig = { ...config, data: body };
         const responseData: ArrayBuffer = await request(
