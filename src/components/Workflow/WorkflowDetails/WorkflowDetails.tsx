@@ -2,7 +2,7 @@ import { Dialog } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { contentMarginGridUnits } from 'common/layout';
 import { WaitForData, withRouteParams } from 'components/common';
-import { useProject } from 'components/hooks';
+import { useProject, useQueryState } from 'components/hooks';
 import { ImportWorkflowForm } from 'components/Launch/LaunchWorkflowForm/ImportWorkflowForm';
 import { LaunchWorkflowForm } from 'components/Launch/LaunchWorkflowForm/LaunchWorkflowForm';
 import * as React from 'react';
@@ -45,12 +45,12 @@ export type WorkflowDetailsProps = WorkflowDetailsRouteParams;
 export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
     projectId,
     domainId,
-    workflowName,
-    query
+    workflowName
 }) => {
-    console.log('query');
-    console.log(query);
-    const project = useProject(projectId);
+    const { params, setQueryStateValue } = useQueryState<{
+        host: string;
+    }>();
+    const project = useProject(projectId, params.host);
     const styles = useStyles();
     const [showLaunchForm, setShowLaunchForm] = React.useState(false);
     const onLaunch = () => setShowLaunchForm(true);
@@ -61,7 +61,7 @@ export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
         domain: domainId,
         name: workflowName
     };
-    if (query.host) {
+    if (params.host) {
         return (
             <>
                 <WaitForData {...project}>
@@ -85,7 +85,7 @@ export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
                         <ImportWorkflowForm
                             onClose={onCancelLaunch}
                             workflowId={workflowId}
-                            host={query.host}
+                            host={params.host}
                         />
                     </Dialog>
                 </WaitForData>

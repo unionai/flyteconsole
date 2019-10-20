@@ -53,6 +53,8 @@ export const WorkflowDetailsHeader: React.FC<WorkflowDetailsHeaderProps> = ({
     const commonStyles = useCommonStyles();
     const domain = getProjectDomain(project, domainId);
     const headerText = `${domain.name} / ${workflowName}`;
+    console.log('POROING');
+    console.log(project);
     return (
         <div className={styles.headerContainer}>
             <div
@@ -65,7 +67,8 @@ export const WorkflowDetailsHeader: React.FC<WorkflowDetailsHeaderProps> = ({
                     className={commonStyles.linkUnstyled}
                     to={Routes.ProjectDetails.sections.workflows.makeUrl(
                         project.id,
-                        domainId
+                        domainId,
+                        project.host
                     )}
                 >
                     <ArrowBack color="inherit" />

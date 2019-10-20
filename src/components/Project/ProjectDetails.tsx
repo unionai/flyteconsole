@@ -61,10 +61,12 @@ const ProjectWorkflowsByDomain: React.FC<{ project: Project }> = ({
 
 /** The view component for the Project landing page */
 export const ProjectDetailsContainer: React.FC<ProjectDetailsRouteParams> = ({
-    projectId,
-    query
+    projectId
 }) => {
-    const project = useProject(projectId, query.host);
+    const { params, setQueryStateValue } = useQueryState<{
+        host: string;
+    }>();
+    const project = useProject(projectId, params.host);
     return (
         <WaitForData {...project}>
             {() => {

@@ -19,16 +19,8 @@ import {
 } from 'models';
 import * as React from 'react';
 import { SearchableSelector } from './SearchableSelector';
-import { SimpleInput } from './SimpleInput';
-import {
-    ImportWorkflowFormProps,
-    InputProps,
-    InputType,
-    LaunchWorkflowFormProps
-} from './types';
-import { UnsupportedInput } from './UnsupportedInput';
+import { ImportWorkflowFormProps } from './types';
 import { useImportWorkflowFormState } from './useImportWorkflowFormState';
-import { useLaunchWorkflowFormState } from './useLaunchWorkflowFormState';
 import { workflowsToSearchableSelectorOptions } from './utils';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -56,19 +48,6 @@ const useStyles = makeStyles((theme: Theme) => ({
         width: '100%'
     }
 }));
-
-function getComponentForInput(input: InputProps) {
-    switch (input.typeDefinition.type) {
-        case InputType.Collection:
-        case InputType.Map:
-        case InputType.Schema:
-        case InputType.Unknown:
-        case InputType.None:
-            return <UnsupportedInput {...input} />;
-        default:
-            return <SimpleInput {...input} />;
-    }
-}
 
 function generateFetchSearchResults(
     { listWorkflows }: APIContextValue,
@@ -117,7 +96,7 @@ export const ImportWorkflowForm: React.FC<ImportWorkflowFormProps> = props => {
     return (
         <>
             <DialogTitle disableTypography={true} className={styles.header}>
-                <div className={styles.inputLabel}>Launch Workflow</div>
+                <div className={styles.inputLabel}>Import Workflow</div>
                 <Typography variant="h6">{state.workflowName}</Typography>
             </DialogTitle>
             <DialogContent dividers={true} className={styles.inputsSection}>
@@ -167,6 +146,10 @@ export const ImportWorkflowForm: React.FC<ImportWorkflowFormProps> = props => {
                     </Button>
                     <Button
                         color="primary"
+                        disabled={
+                            submissionState.loading ||
+                            !state.inputLoadingState.hasLoaded
+                        }
                         id="launch-workflow-submit"
                         onClick={submit}
                         type="submit"

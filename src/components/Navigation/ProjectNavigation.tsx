@@ -71,7 +71,7 @@ const ProjectNavigationImpl: React.FC<ProjectNavigationRouteParams> = ({
         domain: string;
         host?: string;
     }>();
-    const project = useProject(projectId);
+    const project = useProject(projectId, params.host);
     const projects = useProjects(params.host);
     const onProjectSelected = (project: Project) =>
         history.push(Routes.ProjectDetails.makeUrl(project.id, section));

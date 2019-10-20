@@ -51,6 +51,9 @@ export function useProject(id: string, host?: string): FetchableData<Project> {
         if (!project) {
             throw new NotFoundError(id);
         }
+        if (host) {
+            project.host = host;
+        }
         return project;
     };
 

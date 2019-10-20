@@ -161,10 +161,7 @@ function useLaunchPlanSelectorOptions(launchPlans: LaunchPlan[]) {
     ]);
 }
 
-function useLaunchPlansForWorkflow(
-    workflowId: WorkflowId | null = null,
-    host?: string
-) {
+function useLaunchPlansForWorkflow(workflowId: WorkflowId | null = null) {
     const { listLaunchPlans } = useAPIContext();
     return useFetchableData<LaunchPlan[], WorkflowId | null>(
         {
@@ -177,7 +174,6 @@ function useLaunchPlansForWorkflow(
                 }
                 const { project, domain, name, version } = workflowId;
                 console.log('IN useFetch');
-                console.log(host);
                 const { entities } = await listLaunchPlans(
                     { project, domain },
                     // TODO: Only active?
@@ -212,17 +208,13 @@ export function useLaunchWorkflowFormState({
     workflowId
 }: LaunchWorkflowFormProps): LaunchWorkflowFormState {
     const { createWorkflowExecution } = useAPIContext();
-    const workflows = useWorkflows(
-        workflowId,
-        {
-            limit: 10,
-            sort: {
-                key: workflowSortFields.createdAt,
-                direction: SortDirection.DESCENDING
-            }
-        },
-        host
-    );
+    const workflows = useWorkflows(workflowId, {
+        limit: 10,
+        sort: {
+            key: workflowSortFields.createdAt,
+            direction: SortDirection.DESCENDING
+        }
+    });
     const workflowSelectorOptions = useWorkflowSelectorOptions(workflows.value);
     const [selectedWorkflow, setWorkflow] = useState<
         SearchableSelectorOption<WorkflowId>
@@ -232,7 +224,7 @@ export function useLaunchWorkflowFormState({
     // We have to do a single item get once a workflow is selected so that we
     // receive the full workflow spec
     const workflow = useWorkflow(selectedWorkflowId);
-    const launchPlans = useLaunchPlansForWorkflow(selectedWorkflowId, host);
+    const launchPlans = useLaunchPlansForWorkflow(selectedWorkflowId);
     const launchPlanSelectorOptions = useLaunchPlanSelectorOptions(
         launchPlans.value
     );

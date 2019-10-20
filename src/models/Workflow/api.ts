@@ -21,9 +21,6 @@ export const listWorkflows = (
     config?: RequestConfig,
     host: string
 ) => {
-    console.log('hosty');
-    console.log(config);
-    console.log(host);
     return getAdminEntity(
         {
             host,

@@ -8,7 +8,6 @@ import {
 import {
     FilterOperationName,
     LaunchPlan,
-    LiteralType,
     SortDirection,
     Workflow,
     WorkflowExecutionIdentifier,
@@ -17,130 +16,13 @@ import {
 } from 'models';
 import { useEffect, useMemo, useState } from 'react';
 import { history, Routes } from 'routes';
-import { simpleTypeToInputType } from './constants';
 import { SearchableSelectorOption } from './SearchableSelector';
+import { ImportWorkflowFormProps } from './types';
 import {
-    InputProps,
-    InputType,
-    InputTypeDefinition,
-    InputValue,
-    LaunchWorkflowFormProps,
-    LaunchWorkflowFormState
-} from './types';
-import {
-    convertFormInputsToLiteralMap,
     formatLabelWithType,
-    getWorkflowInputs,
     launchPlansToSearchableSelectorOptions,
     workflowsToSearchableSelectorOptions
 } from './utils';
-
-// We use a non-empty string for the description to allow display components
-// to depend on the existence of a value
-const emptyDescription = ' ';
-
-function getInputDefintionForLiteralType(
-    literalType: LiteralType
-): InputTypeDefinition {
-    if (literalType.blob) {
-        return { type: InputType.Blob };
-    }
-
-    if (literalType.collectionType) {
-        return {
-            type: InputType.Collection,
-            subtype: getInputDefintionForLiteralType(literalType.collectionType)
-        };
-    }
-
-    if (literalType.mapValueType) {
-        return {
-            type: InputType.Map,
-            subtype: getInputDefintionForLiteralType(literalType.mapValueType)
-        };
-    }
-
-    if (literalType.schema) {
-        return { type: InputType.Schema };
-    }
-
-    if (literalType.simple) {
-        return { type: simpleTypeToInputType[literalType.simple] };
-    }
-
-    return { type: InputType.Unknown };
-}
-
-type ParsedInput = Pick<
-    InputProps,
-    'description' | 'label' | 'name' | 'required' | 'typeDefinition'
->;
-
-function getInputs(workflow: Workflow, launchPlan: LaunchPlan): ParsedInput[] {
-    if (!launchPlan.closure || !workflow) {
-        // TODO: is this an error?
-        return [];
-    }
-
-    const workflowInputs = getWorkflowInputs(workflow);
-    const launchPlanInputs = launchPlan.closure.expectedInputs.parameters;
-    return Object.entries(launchPlanInputs).map(value => {
-        const [name, parameter] = value;
-        const required = !!(parameter.default || parameter.required);
-        const workflowInput = workflowInputs[name];
-        const description =
-            workflowInput && workflowInput.description
-                ? workflowInput.description
-                : emptyDescription;
-
-        const typeDefinition = getInputDefintionForLiteralType(
-            parameter.var.type
-        );
-        const label = formatLabelWithType(name, typeDefinition);
-
-        // TODO:
-        // Extract default value for more specific type (maybe just for simple)
-        return {
-            description,
-            label,
-            name,
-            required,
-            typeDefinition
-        };
-    });
-}
-
-interface FormInputsState {
-    inputs: InputProps[];
-}
-
-// TODO: This could be made generic and composed with ParsedInput
-function useFormInputsState(parsedInputs: ParsedInput[]): FormInputsState {
-    const [values, setValues] = useState<Record<string, InputValue>>({});
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const inputs = parsedInputs.map<InputProps>(parsed => ({
-        ...parsed,
-        value: values[parsed.name],
-        helperText: errors[parsed.name]
-            ? errors[parsed.name]
-            : parsed.description,
-        onChange: (value: InputValue) =>
-            setValues({ ...values, [parsed.name]: value })
-    }));
-
-    useEffect(
-        () => {
-            // TODO: Use default values from inputs
-            setValues({});
-        },
-        [parsedInputs]
-    );
-
-    return {
-        inputs
-    };
-}
 
 export function useWorkflowSelectorOptions(workflows: Workflow[]) {
     return useMemo(
@@ -203,14 +85,12 @@ function useLaunchPlansForWorkflow(
     );
 }
 
-/** Contains all of the form state for a LaunchWorkflowForm, including input
- * definitions, current input values, and errors.
- */
+// Contains all of the form state for a ImportWorkflowForm
 export function useImportWorkflowFormState({
     onClose,
     workflowId,
     host
-}: ImportWorkflowFormProps): LaunchWorkflowFormState {
+}: ImportWorkflowFormProps): ImportWorkflowFormState {
     const {
         registerProject,
         createTask,
@@ -254,8 +134,6 @@ export function useImportWorkflowFormState({
 
     const inputLoadingState = waitForAllFetchables([workflow, launchPlans]);
 
-    const [parsedInputs, setParsedInputs] = useState<ParsedInput[]>([]);
-    const { inputs } = useFormInputsState(parsedInputs);
     const workflowName = workflowId.name;
 
     const onSelectWorkflow = (
@@ -265,68 +143,91 @@ export function useImportWorkflowFormState({
         setWorkflow(newWorkflow);
     };
 
-    //  FIXME
-    // this is actually not launching a workflow
-    const launchWorkflow = async () => {
-        const workflowTemplate =
-            workflow.value.closure.compiledWorkflow.primary.template;
-        const tasks = workflow.value.closure.compiledWorkflow.tasks;
-        const launchPlan = selectedLaunchPlan;
+    const importWorkflow = async () => {
         console.log(workflow);
+        const compiledWorkflow = workflow.value.closure.compiledWorkflow;
+        const workflowTemplate = compiledWorkflow.primary.template;
+        const taskTemplates = compiledWorkflow.tasks.map(
+            value => value.template
+        );
+        const launchPlanSpec = launchPlanData;
         console.log('HERE ARE THE TASKS TO COPY');
-        console.log(workflow.value.closure.compiledWorkflow.tasks);
+        console.log(taskTemplates);
         console.log('HERE IS THE WORKFLOW TO COPY');
-        console.log(workflow.value.closure.compiledWorkflow.primary.template);
+        console.log(workflowTemplate);
         console.log('HERE THE LAUNCH PLAN TO COPY');
         console.log(selectedLaunchPlan);
         if (!launchPlanData) {
             throw new Error('Attempting to launch with no LaunchPlan');
         }
-        const launchPlanId = launchPlanData.id;
         const { domain, project } = workflowId;
-        console.log('creating wit');
-        const taskZero = tasks[0];
-        console.log(taskZero.template);
-        const projectResponse = await registerProject(
-            taskZero.template.id.project
+
+        // register Project
+        try {
+            await registerProject(project);
+        } catch (err) {
+            // 409 means the project already exists
+            if (err.response.status !== 409) {
+                throw error;
+            }
+        }
+
+        // register each task
+        for (let i = 0; i < taskTemplates.length; i = i + 1) {
+            try {
+                await createTask(taskTemplates[i]);
+            } catch (err) {
+                // 409 means the task already exists
+                if (err.response.status !== 409) {
+                    throw error;
+                }
+            }
+        }
+
+        workflowTemplate.nodes = workflowTemplate.nodes.filter(
+            node => node.id !== 'start-node' && node.id !== 'end-node'
         );
-        const taskResponse = await createTask(taskZero.template);
-        // shift off the start and end node :(
-        workflowTemplate.nodes.shift();
-        workflowTemplate.nodes.shift();
-        const workflowResponse = await createWorkflow(workflowTemplate);
-        const launchPlanSpec = selectedLaunchPlan.data;
+
+        // register Workflow
+        try {
+            const workflowResponse = await createWorkflow(workflowTemplate);
+        } catch (err) {
+            // 409 means the workflow already exists
+            if (err.response.status !== 409) {
+                throw error;
+            }
+        }
+
         console.log('THE SPEC');
         console.log(launchPlanSpec);
-        const response = await createLaunchPlan(launchPlanSpec);
-        const newExecutionId = response.id as WorkflowExecutionIdentifier;
-        if (!newExecutionId) {
-            throw new Error('API Response did not include new execution id');
+
+        // register LaunchPlan
+        try {
+            await createLaunchPlan(launchPlanSpec);
+        } catch (err) {
+            // 409 means the launchPlan already exists
+            if (err.response.status !== 409) {
+                throw error;
+            }
         }
-        history.push(Routes.ExecutionDetails.makeUrl(newExecutionId));
-        return newExecutionId;
+
+        const workflowName = workflowTemplate.id.name;
+
+        history.push(
+            Routes.WorkflowDetails.makeUrl(project, domain, workflowName)
+        );
+        console.log('TODONE');
     };
 
     const submissionState = useFetchableData<WorkflowExecutionIdentifier>({
         autoFetch: false,
-        debugName: 'LaunchWorkflowForm',
+        debugName: 'ImportWorkflowForm',
         defaultValue: {} as WorkflowExecutionIdentifier,
-        doFetch: launchWorkflow
+        doFetch: importWorkflow
     });
 
     const onSubmit = submissionState.fetch;
     const onCancel = onClose;
-
-    useEffect(
-        () => {
-            const parsedInputs =
-                launchPlanData && workflow.hasLoaded
-                    ? getInputs(workflow.value, launchPlanData)
-                    : [];
-            setParsedInputs(parsedInputs);
-        },
-        [workflow.hasLoaded, workflow.value, launchPlanData]
-    );
 
     // Once workflows have loaded, attempt to select the first option
     useEffect(
@@ -355,7 +256,6 @@ export function useImportWorkflowFormState({
 
     return {
         inputLoadingState,
-        inputs,
         launchPlanOptionsLoadingState,
         launchPlanSelectorOptions,
         onCancel,

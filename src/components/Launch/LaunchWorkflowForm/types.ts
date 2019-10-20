@@ -35,6 +35,23 @@ export interface LaunchWorkflowFormState {
     onSelectLaunchPlan(selected: SearchableSelectorOption<LaunchPlan>): void;
 }
 
+export interface LaunchWorkflowFormState {
+    inputLoadingState: MultiFetchableState;
+    inputs: InputProps[];
+    launchPlanOptionsLoadingState: MultiFetchableState;
+    launchPlanSelectorOptions: SearchableSelectorOption<LaunchPlan>[];
+    selectedLaunchPlan?: SearchableSelectorOption<LaunchPlan>;
+    submissionState: FetchableData<WorkflowExecutionIdentifier>;
+    selectedWorkflow?: SearchableSelectorOption<WorkflowId>;
+    workflowName: string;
+    workflowOptionsLoadingState: MultiFetchableState;
+    workflowSelectorOptions: SearchableSelectorOption<WorkflowId>[];
+    onCancel(): void;
+    onSelectWorkflow(selected: SearchableSelectorOption<WorkflowId>): void;
+    onSubmit(): void;
+    onSelectLaunchPlan(selected: SearchableSelectorOption<LaunchPlan>): void;
+}
+
 export enum InputType {
     Binary = 'BINARY',
     Blob = 'BLOB',
