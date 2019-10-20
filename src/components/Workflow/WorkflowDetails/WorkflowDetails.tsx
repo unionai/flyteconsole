@@ -1,5 +1,6 @@
 import { Dialog } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
+import { mainRegistryName } from 'common/constants';
 import { contentMarginGridUnits } from 'common/layout';
 import { WaitForData, withRouteParams } from 'components/common';
 import { useProject, useQueryState } from 'components/hooks';
@@ -61,7 +62,7 @@ export const WorkflowDetailsContainer: React.FC<WorkflowDetailsRouteParams> = ({
         domain: domainId,
         name: workflowName
     };
-    if (params.host) {
+    if (params.host && params.host !== mainRegistryName) {
         return (
             <>
                 <WaitForData {...project}>

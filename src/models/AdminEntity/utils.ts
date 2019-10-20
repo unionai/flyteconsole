@@ -19,7 +19,7 @@ const debug = createDebugLogger('adminEntity');
 /** Converts a path into a full Admin API url */
 export function adminApiUrl(url: string, host?: string) {
     const finalUrl = ensureSlashPrefixed(url);
-    if (host) {
+    if (host && registryURLs[host]) {
         const endpoint = registryURLs[host];
         return createCorsProxyURL(`${endpoint}/api/v1${finalUrl}`);
     }

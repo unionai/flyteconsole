@@ -173,7 +173,6 @@ function useLaunchPlansForWorkflow(workflowId: WorkflowId | null = null) {
                     return Promise.reject('No workflowId specified');
                 }
                 const { project, domain, name, version } = workflowId;
-                console.log('IN useFetch');
                 const { entities } = await listLaunchPlans(
                     { project, domain },
                     // TODO: Only active?

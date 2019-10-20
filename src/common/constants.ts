@@ -5,10 +5,14 @@ export const workflowTabIds = {
     versions: 'versions'
 };
 
-export const registryURLs = {
-    main: '',
-    registry: 'http://localhost:30082'
-};
+export const mainRegistryName = 'main';
+
+export const registryURLs = {};
+
+registryURLs[mainRegistryName] = '';
+
+// TODO LOOP over a config
+registryURLs['registry'] = 'http://localhost:30082';
 
 export const contentContainerId = 'content-container';
 export const detailsPanelId = 'details-panel';

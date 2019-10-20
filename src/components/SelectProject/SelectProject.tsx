@@ -1,6 +1,7 @@
 import { Tab, Tabs } from '@material-ui/core';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import { mainRegistryName, registryURLs } from 'common/constants';
 import { env } from 'common/env';
 import { SearchableList, SearchResult, WaitForData } from 'components/common';
 import {
@@ -66,23 +67,21 @@ export const SelectProjectHost: React.FC = props => {
 
 /** The view component for the landing page of the application. */
 export const SelectProject: React.FC = () => {
-    // TODO LOOP THROUGH REGISTRIES
     const { params, setQueryStateValue } = useQueryState<{
         domain: string;
         host: string;
     }>();
     const handleTabChange = (event: React.ChangeEvent<{}>, tabId: string) =>
         setQueryStateValue('host', tabId);
-    const registries = ['', 'registry'];
     const styles = useStyles();
     return (
         <>
             <Tabs
                 className={styles.tabs}
                 onChange={handleTabChange}
-                value={params.host}
+                value={params.host || mainRegistryName}
             >
-                {registries.map(id => (
+                {Object.keys(registryURLs).map(id => (
                     <Tab
                         className={styles.tab}
                         key={id}
