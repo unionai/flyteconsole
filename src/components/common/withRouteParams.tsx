@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { useParams } from 'react-router';
 import { RouteComponentProps } from 'react-router-dom';
 
 // Wraps a component which expects route params specified by the interface

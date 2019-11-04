@@ -12,7 +12,7 @@ export const registryURLs = {};
 registryURLs[mainRegistryName] = '';
 
 // TODO LOOP over a config
-registryURLs['registry'] = 'http://localhost:30082';
+registryURLs['flytehub'] = 'http://flytehub.org';
 
 export const contentContainerId = 'content-container';
 export const detailsPanelId = 'details-panel';
