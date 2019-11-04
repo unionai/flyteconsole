@@ -7,7 +7,6 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 const { StatsWriterPlugin } = require('webpack-stats-plugin');
 const FavIconWebpackPlugin = require('favicons-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const HappyPack = require('happypack');
 const HTMLExternalsWebpackPlugin = require('html-webpack-externals-plugin');
 const nodeExternals = require('webpack-node-externals');
@@ -58,7 +57,8 @@ export const fileLoader: webpack.Loader = {
     loader: 'file-loader',
     options: {
         publicPath,
-        name: '[hash:8].[ext]'
+        name: '[hash:8].[ext]',
+        transpileOnly: true
     }
 };
 
@@ -236,6 +236,10 @@ export const clientConfig: webpack.Configuration = {
     resolve,
     name: 'client',
     target: 'web',
+    stats: {
+        errors: false,
+        warnings: false
+    },
     get entry() {
         const entry = ['babel-polyfill', './src/client'];
 
@@ -290,7 +294,6 @@ export const clientConfig: webpack.Configuration = {
                 id: 'ts',
                 loaders: ['babel-loader', 'ts-loader?happyPackMode=true']
             }),
-            new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
             favIconPlugin,
             statsWriterPlugin,
             getDefinePlugin(false)
@@ -340,7 +343,6 @@ export const serverConfig: webpack.Configuration = {
             id: 'ts',
             loaders: ['babel-loader', 'ts-loader?happyPackMode=true']
         }),
-        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
         getDefinePlugin(true)
         // namedModulesPlugin,
     ]

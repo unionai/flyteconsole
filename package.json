@@ -9,7 +9,7 @@
     "main": "index.js",
     "scripts": {
         "build:prod":
-            "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' NODE_ENV=production webpack --config webpack.config.ts --mode=production",
+            "TS_NODE_TRANSPILE_ONLY=true TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' NODE_ENV=production webpack --config webpack.config.ts --mode=production",
         "build":
             "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' webpack --config webpack.config.ts --mode=development",
         "clean": "rm -rf dist",
