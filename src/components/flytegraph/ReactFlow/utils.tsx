@@ -7,7 +7,7 @@ const dagre = require('dagre');
 export const DISPLAY_NAME_START = 'start';
 export const DISPLAY_NAME_END = 'end';
 
-export const MAX_RENDER_DEPTH = 2;
+export const MAX_RENDER_DEPTH = 1;
 
 export const ReactFlowGraphConfig = {
     customNodePrefix: 'FlyteNode',

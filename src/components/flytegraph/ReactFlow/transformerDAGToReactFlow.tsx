@@ -17,15 +17,35 @@ export const buildReactFlowEdge = (edge: dEdge): RFEntity => {
     } as RFEntity;
 };
 
-export const buildReactFlowNode = (dNode: dNode, dag = []): RFEntity => {
+export const buildReactFlowNode = (
+    dNode: dNode,
+    dag = [],
+    typeOverride: dTypes = null
+): RFEntity => {
+    const type =
+        typeOverride != null ? typeOverride : buildCustomNodeName(dNode.type);
+    console.log('@buildReactFlowNode typeOverride', typeOverride);
+    console.log('\tTASK TYPE:', type);
+
+    let taskType = null;
+
+    if (dNode?.value) {
+        console.log('@DAG->RF: dNode has value', dNode);
+    }
+
+    if (dNode?.value?.template) {
+        console.log('@DAG->RF: Task template not null, adding');
+        taskType = dNode.value.template.type;
+    }
     return {
         id: dNode.id,
-        type: buildCustomNodeName(dNode.type),
+        type: type,
         data: {
             text: dNode.name,
             handles: [],
             nodeType: dNode.type,
-            dag: dag
+            dag: dag,
+            taskType: taskType
         },
         position: { x: 0, y: 0 },
         sourcePosition: '',
@@ -42,18 +62,35 @@ export const nodeMapToArr = map => {
 };
 
 export const ConvertFlyteDagToReactFlows = (root: dNode): RFEntity[] => {
-    let currentDepth = 0;
-    const maxDepth = MAX_RENDER_DEPTH;
-
-    const dagToReactFlow = (dag: dNode) => {
+    const dagToReactFlow = (dag: dNode, currentDepth = 0) => {
         const nodes = {};
         const edges = [];
         dag.nodes?.map(dNode => {
-            if (dNode.nodes?.length > 0) {
-                nodes[dNode.id] = buildReactFlowNode(
-                    dNode,
-                    dagToReactFlow(dNode)
-                );
+            if (dNode.nodes?.length > 0 && currentDepth <= MAX_RENDER_DEPTH) {
+                console.log('current Depth:', currentDepth);
+                /**
+                 * @TODO
+                 * Once we fix mapping task types to nodes retun this line to
+                 *  currentDepth == MAX_RENDER_DEPT
+                 */
+                if (currentDepth > MAX_RENDER_DEPTH) {
+                    console.log(
+                        `\tif case: ${currentDepth} == ${MAX_RENDER_DEPTH}`
+                    );
+                    nodes[dNode.id] = buildReactFlowNode(
+                        dNode,
+                        [],
+                        dTypes.nestedMaxDepth
+                    );
+                } else {
+                    console.log(
+                        `\telse case: ${currentDepth} != ${MAX_RENDER_DEPTH}`
+                    );
+                    nodes[dNode.id] = buildReactFlowNode(
+                        dNode,
+                        dagToReactFlow(dNode, currentDepth + 1)
+                    );
+                }
             } else {
                 nodes[dNode.id] = buildReactFlowNode(dNode);
             }

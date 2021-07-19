@@ -10,7 +10,7 @@ export enum dTypes {
     end,
     nestedEnd,
     nestedStart,
-    nestedWithChildren
+    nestedMaxDepth
 }
 
 /**

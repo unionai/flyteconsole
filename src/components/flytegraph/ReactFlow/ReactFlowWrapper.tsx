@@ -27,7 +27,7 @@ const CustomNodeTypes = {
     FlyteNode_end: ReactFlowCustomEndNode,
     FlyteNode_nestedStart: ReactFlowCustomNestedPoint,
     FlyteNode_nestedEnd: ReactFlowCustomNestedPoint,
-    FlyteNode_nestedWithChildren: ReactFlowCustomTaskNode
+    FlyteNode_nestedMaxDepth: ReactFlowCustomTaskNode
 };
 
 /**

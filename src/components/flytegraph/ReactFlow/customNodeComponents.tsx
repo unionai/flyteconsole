@@ -35,8 +35,30 @@ export const ReactFlowCustomTaskNode = ({ data }: any) => {
     const styles = getGraphNodeStyle(data.nodeType);
     const sourceHandle = getGraphHandleStyle('source');
     const targetHandle = getGraphHandleStyle('target');
+
+    const containerStyle = {};
+    const taskContainerStyle = {
+        display: 'flex',
+        flexDirection: 'row-reverse'
+    };
+    const taskTypeStyle = {
+        backgroundColor: '#30873e',
+        color: 'white',
+        padding: '.1rem .2rem',
+        fontSize: '.3rem'
+    };
+
+    const renderTaskType = () => {
+        return (
+            <div style={taskContainerStyle}>
+                <div style={taskTypeStyle}>{data.taskType}</div>
+            </div>
+        );
+    };
+
     return (
-        <>
+        <div style={containerStyle}>
+            {data.taskType ? renderTaskType() : null}
             <div style={styles}>{data.text}</div>
             <Handle
                 id={`cnt-left-${data.text}`}
@@ -50,7 +72,7 @@ export const ReactFlowCustomTaskNode = ({ data }: any) => {
                 position="right"
                 style={sourceHandle}
             />
-        </>
+        </div>
     );
 };
 

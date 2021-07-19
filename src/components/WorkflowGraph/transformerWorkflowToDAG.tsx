@@ -2,8 +2,10 @@ import {
     DISPLAY_NAME_END,
     DISPLAY_NAME_START
 } from 'components/flytegraph/ReactFlow/utils';
+import { Identifier } from 'models/Common/types';
 import { dTypes, dEdge, dNode } from 'models/Graph/types';
-import { CompiledNode, ConnectionSet } from 'models/Node/types';
+import { CompiledNode, ConnectionSet, TaskNode } from 'models/Node/types';
+import { CompiledTask, TaskTemplate } from 'models/Task/types';
 import {
     CompiledWorkflow,
     CompiledWorkflowClosure,
@@ -71,7 +73,8 @@ export const getId = (context: CompiledWorkflow | CompiledNode): string => {
     }
 };
 
-/** Wraps a graph entity in a dNode
+/**
+ * @TODO deprecate this function (use createDNode)
  * @param context: graph entity to be wrapped in dNode
  */
 export const buildDNode = (context: any, type: dTypes): dNode => {
@@ -79,7 +82,7 @@ export const buildDNode = (context: any, type: dTypes): dNode => {
         id: getId(context),
         value: context,
         type: type,
-        name: `${getDisplayName(context)}:[${dTypes[type]}]`,
+        name: getDisplayName(context),
         nodes: [],
         edges: []
     } as dNode;
@@ -109,10 +112,10 @@ export const parseBranch = (
     context: CompiledNode,
     workflow: CompiledWorkflowClosure
 ) => {
-    console.log('@parseBranch', root);
+    console.log('@parseBranch: context:', context);
     const thenNodeCompiledNode = context.branchNode?.ifElse?.case
         ?.thenNode as CompiledNode;
-    const thenNodeDNode = buildDNode(thenNodeCompiledNode, dTypes.task);
+    const thenNodeDNode = createDNode(thenNodeCompiledNode, context);
     const { startNode, endNode } = buildBranchStartEndNodes(root);
 
     /* We must this container node regardless */
@@ -128,15 +131,27 @@ export const parseBranch = (
         if (otherArr) {
             otherArr.map(otherItem => {
                 const otherCompiledNode: CompiledNode = otherItem.thenNode as CompiledNode;
-                const otherDNode = buildDNode(otherCompiledNode, dTypes.task);
                 if (otherCompiledNode.branchNode) {
+                    const otherDNodeBranch = createDNode(
+                        otherCompiledNode,
+                        context
+                    );
                     buildDAG(
-                        otherDNode,
+                        otherDNodeBranch,
                         otherCompiledNode,
                         dTypes.branch,
                         workflow
                     );
                 } else {
+                    const taskType = getTaskTypeFromCompiledNode(
+                        otherCompiledNode.taskNode,
+                        workflow.tasks
+                    );
+                    const otherDNode = createDNode(
+                        otherCompiledNode,
+                        context,
+                        taskType
+                    );
                     root.nodes.push(otherDNode);
                 }
             });
@@ -162,33 +177,30 @@ export const parseBranch = (
 };
 
 const createDNode = (
-    node: CompiledNode,
-    template: WorkflowTemplate,
-    typeOverride = null
+    compiledNode: CompiledNode,
+    workflowTemplate: WorkflowTemplate,
+    taskTemplate?: TaskTemplate
 ): dNode => {
+    const nodeValue =
+        taskTemplate == null
+            ? compiledNode
+            : { ...compiledNode, ...taskTemplate };
+
     const output = {
-        id: createId(template, node.id),
-        value: node,
-        type: getTypeFromCompiledNode(node),
-        name: `${getDisplayName(node)}:[${
-            dTypes[getTypeFromCompiledNode(node)]
-        }]`,
+        id: createId(workflowTemplate, compiledNode.id),
+        value: nodeValue,
+        type: getTypeFromCompiledNode(compiledNode),
+        name: getDisplayName(compiledNode),
         nodes: [],
         edges: []
     } as dNode;
     return output;
 };
 
-const createId = (template, name): string => {
+const createId = (template: WorkflowTemplate, name): string => {
     const output = `${template.id.name}_${template.id.version}_${name}`;
     return output;
 };
-
-// const getTruncatedId = (id): string => {
-//     const startIndex = id.lastIndexOf('_');
-//     const output = id.substring(startIndex + 1);
-//     return output;
-// };
 
 const getTypeFromCompiledNode = (node: CompiledNode): dTypes => {
     if (node.id == 'start-node') {
@@ -247,11 +259,6 @@ export const buildBranchStartEndNodes = (root: dNode) => {
     };
 };
 
-/**
- * Note: this assumes data from response will always include start/end nodes
- * as the first two members of the array.
- * @param root
- */
 export const buildStartEndEdges = (root: dNode, type: dTypes | null = null) => {
     const startNode: dNode = root.nodes[0];
     const endNode: dNode = root.nodes[1];
@@ -279,8 +286,23 @@ const getSubWorkflowFromId = (id, workflow) => {
     return false;
 };
 
-/* Funciton mutates root.nodes[] */
+const getTaskTypeFromCompiledNode = (
+    taskNode: TaskNode,
+    tasks: CompiledTask[]
+) => {
+    for (let i = 0; i < tasks.length; i++) {
+        const template: TaskTemplate = tasks[i];
+        const templateId: Identifier = template.id;
+        if (checkIfObjectsAreSame(templateId, taskNode.referenceId)) {
+            console.log('FOUND CORRECT TASK TYPE MAPPING!:', template);
+            return template;
+        }
+    }
+    return false;
+};
+
 /**
+ * Handles parsing CompiledWorkflow data objects
  *
  * @param root          Root node for the graph that will be rendered
  * @param context       The current workflow (could be child of main workflow)
@@ -316,14 +338,22 @@ export const parseWorkflow = (
     ): void => {
         for (let i = 0; i < context.nodes.length; i++) {
             const compiledNode: CompiledNode = context.nodes[i];
-            const dNode: dNode = createDNode(compiledNode, context);
+            let dNode: dNode = createDNode(compiledNode, context);
             if (compiledNode.branchNode) {
                 buildDAG(dNode, compiledNode, dTypes.branch, workflow);
             } else if (compiledNode.workflowNode) {
                 const id = compiledNode.workflowNode.subWorkflowRef;
                 const subworkflow = getSubWorkflowFromId(id, workflow);
                 buildDAG(dNode, subworkflow, dTypes.subworkflow, workflow);
+            } else if (compiledNode.taskNode) {
+                const taskType = getTaskTypeFromCompiledNode(
+                    compiledNode.taskNode,
+                    workflow.tasks
+                );
+                console.log('\n\n\n>>>> creating new dNode with taskTEmplate');
+                dNode = createDNode(compiledNode, context, taskType);
             }
+
             contextualRoot.nodes.push(dNode);
         }
     };
@@ -350,9 +380,8 @@ export const parseWorkflow = (
 };
 
 /**
- * Will recursively render DAG of given context consisting of nodes and edges.
- * Nodes are wrapped in dNode in
- * order to represent other DAGS.
+ * Mutates root (if passed) by recursively rendering DAG of given context.
+ *
  * @param root          Root node of DAG
  * @param graphType     DAG type (eg, branch, workflow)
  * @param context       Pointer to current context of response
@@ -379,148 +408,3 @@ export const buildDAG = (
             console.log('\n\n\n-----SWITCH default-----\n\n\n');
     }
 };
-
-// /**
-//  *
-//  * @param root          Root node for the graph that will be rendered
-//  * @param context       The current workflow (could be child of main workflow)
-//  * @param type          Type (sub or primrary)
-//  * @param workflow      Main parent workflow
-//  */
-// export const parseWorkflowSave = (
-//     root,
-//     context: CompiledWorkflow,
-//     type: dTypes,
-//     workflow: CompiledWorkflowClosure
-// ) => {
-//     console.log('@parseWorkflow:', root, context, type, workflow);
-
-//     const downstreamPointer = context.connections.downstream;
-//     const nodesListPointer = context.template.nodes;
-//     const nodeMap = {};
-
-//     /* Create mapping of id => dNode for all nodes */
-//     for (let i = 0; i < nodesListPointer.length; i++) {
-//         const dNode: dNode = createDNode(nodesListPointer[i], context.template);
-//         nodeMap[nodesListPointer[i].id] = {
-//             dNode: dNode,
-//             compiledNode: nodesListPointer[i]
-//         };
-//     }
-
-//     console.log('\tnodeMap:', nodeMap);
-
-//     /* Recursively build out children */
-//     const buildOut = parentDNode => {
-//         const parentNodeId = getTruncatedId(parentDNode.id);
-//         const downstreamList = downstreamPointer[parentNodeId].ids;
-
-//         /* Build graph from downstreams of start-node */
-//         for (let i = 0; i < downstreamList.length; i++) {
-//             const currentId = downstreamList[i];
-
-//             const currentDNode: dNode = nodeMap[currentId].dNode;
-//             const currentCompiledNode: CompiledNode =
-//                 nodeMap[currentId].compiledNode;
-
-//             if (currentCompiledNode.workflowNode) {
-//                 const { subWorkflows } = workflow;
-//                 const subWorkflowRef =
-//                     currentCompiledNode.workflowNode.subWorkflowRef;
-
-//                 /* Find current matching entitity from subWorkflows */
-//                 for (const k in subWorkflows) {
-//                     const subWorkflowId = subWorkflows[k].template.id;
-//                     if (checkIfObjectsAreSame(subWorkflowId, subWorkflowRef)) {
-//                         buildDAG(
-//                             currentDNode,
-//                             dTypes.subworkflow,
-//                             subWorkflows[k],
-//                             workflow
-//                         );
-//                     }
-//                 }
-//             } else if (currentCompiledNode.branchNode) {
-//                 console.log('@PArseWorkflow ==> BRANCH');
-//                 buildDAG(
-//                     currentDNode,
-//                     dTypes.branch,
-//                     currentCompiledNode,
-//                     workflow
-//                 );
-//             }
-
-//             /* Build edge */
-//             const edge: dEdge = {
-//                 sourceId: parentDNode.id,
-//                 targetId: currentDNode.id
-//             };
-
-//             /* Add to parent (dNode) nodes[] /*/
-//             parentDNode.nodes.push(currentDNode);
-//             /* Add edge */
-//             parentDNode.edges.push(edge);
-
-//             if (downstreamPointer[currentId]?.ids.length > 0) {
-//                 buildOut(currentDNode);
-//             }
-//         }
-//     };
-
-//     /* Build DAG */
-//     const startNode = nodeMap['start-node'].dNode;
-//     buildOut(startNode);
-
-//     /* Root is null for corporal/primary root */
-//     if (root) {
-//         root.nodes.push(startNode);
-//     } else {
-//         return startNode;
-//     }
-// };
-
-// export const parseNodeList = (
-//     root: dNode,
-//     context: Array<CompiledNode>,
-//     workflow: CompiledWorkflowClosure
-// ) => {
-//     let previous: dNode;
-//     console.log('@parseNodeList:');
-//     console.log('\troot:', root);
-//     console.log('\tcontext:', context);
-//     console.log('\tworkflow:', workflow);
-
-//     for (let i = 0; i < context.length; i++) {
-//         console.log('\t\tfor():');
-//         const node: CompiledNode = context[i] as CompiledNode;
-//         let dNode: dNode;
-
-//         /* Recurse if has branch node */
-//         if (node.branchNode) {
-//             console.log('\t\t\t:node.branchNode');
-//             buildDAG(root, dTypes.branch, node, workflow);
-//         } else if (node.workflowNode) {
-//             console.log('\t\t\t:node.workflowNode');
-//             buildDAG(root, dTypes.subworkflow, node, workflow);
-//         } else {
-//             console.log('\t\t\t:CASE:ELSE');
-//             const type: dTypes = checkStartEndType(node);
-//             dNode = buildDNode(node, type);
-//             root.nodes.push(dNode);
-//         }
-
-//         /* Edges are set with parent */
-//         if (previous && i > 1) {
-//             const edge: dEdge = {
-//                 sourceId: previous.id,
-//                 targetId: dNode.id
-//             };
-//             root.edges.push(edge);
-//         }
-//         if (i > 1) {
-//             previous = dNode;
-//         }
-//     }
-
-//     buildStartEndEdges(root);
-// };
