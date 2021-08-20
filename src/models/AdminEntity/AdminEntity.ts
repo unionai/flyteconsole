@@ -27,7 +27,9 @@ async function request(
     /** API endpoint to use, should not include protocol/host/prefix */
     endpoint: string,
     /** Admin API options to use for the request */
-    config: RequestConfig = {}
+    config: RequestConfig = {},
+    /** Custom headers */
+    headers: any = {}
 ) {
     const options: AxiosRequestConfig = {
         method,
@@ -43,6 +45,10 @@ async function request(
     if (config.data) {
         options.headers['Content-Type'] = 'application/octet-stream';
     }
+    options.headers = {
+        ...options.headers,
+        ...headers
+    };
 
     const finalOptions = {
         ...options,
@@ -101,7 +107,15 @@ export async function getAdminEntity<ResponseType, TransformedType>(
     }: GetEntityParams<ResponseType, TransformedType>,
     config?: RequestConfig
 ): Promise<TransformedType> {
-    const data: ArrayBuffer = await request('get', path, config);
+    const data = await request('get', path, config, {
+        'Content-Type': 'application/json',
+        Accept: '*/*'
+    });
+    const reader = new FileReader();
+    reader.onload = function() {
+        console.log(JSON.parse(this.result));
+    };
+    reader.readAsText(new Blob([data]));
     const decoded = decodeProtoResponse(data, messageType);
     logProtoResponse(path, decoded);
     return transform(decoded) as TransformedType;
