@@ -11,6 +11,7 @@ import { Routes } from 'routes/routes';
 import { ProjectExecutions } from './ProjectExecutions';
 import { ProjectTasks } from './ProjectTasks';
 import { ProjectWorkflows } from './ProjectWorkflows';
+import { GetWorkflowList } from '../../graphql/Workflow/workflow';
 
 const useStyles = makeStyles((theme: Theme) => ({
     tab: {
@@ -50,6 +51,7 @@ const ProjectEntitiesByDomain: React.FC<{
             domain: tabId
         });
     const EntityComponent = entityTypeToComponent[entityType];
+
     return (
         <>
             <Tabs

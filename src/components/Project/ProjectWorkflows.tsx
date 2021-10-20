@@ -6,6 +6,7 @@ import { limits } from 'models/AdminEntity/constants';
 import { FilterOperationName, SortDirection } from 'models/AdminEntity/types';
 import { workflowSortFields } from 'models/Workflow/constants';
 import * as React from 'react';
+import { GetWorkflowList } from '../../graphql/Workflow/workflow';
 
 export interface ProjectWorkflowsProps {
     projectId: string;
@@ -36,9 +37,20 @@ export const ProjectWorkflows: React.FC<ProjectWorkflowsProps> = ({
         }
     );
 
+    const workflows = GetWorkflowList(project, domain, {
+        limit: limits.NONE,
+        sort: {
+            direction: SortDirection.ASCENDING,
+            key: workflowSortFields.name
+        }
+        // Hide archived workflows from the list
+    });
+
+    console.log(workflows);
+
     return (
-        <WaitForData {...workflowNames}>
-            <SearchableWorkflowNameList names={workflowNames.value} />
+        <WaitForData {...workflows}>
+            <SearchableWorkflowNameList workflows={workflows.value} />
         </WaitForData>
     );
 };
