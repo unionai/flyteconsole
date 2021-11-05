@@ -305,7 +305,12 @@ export const clientConfig: webpack.Configuration = {
  * Server bundle is compiled as a CommonJS package that exports an Express middleware
  */
 export const serverConfig: webpack.Configuration = {
-    resolve,
+    resolve: {
+        ...resolve,
+        alias: {
+            models: path.resolve(__dirname, 'src/models')
+        }
+    },
     name: 'server',
     target: 'node',
     devtool: isProd ? devtool : undefined,
@@ -313,7 +318,7 @@ export const serverConfig: webpack.Configuration = {
     module: {
         rules: [sourceMapRule, typescriptRule, imageAndFontsRule]
     },
-    externals: [nodeExternals({ whitelist: /lyft/ })],
+    externals: [nodeExternals({ whitelist: [/lyft/, /@flyteorg/] })],
     output: {
         path: dist,
         filename: 'server.js',

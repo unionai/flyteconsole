@@ -112,8 +112,6 @@ export const EntityExecutionsBarChart: React.FC<EntityExecutionsBarChartProps> =
         }
     );
 
-    console.log(executions);
-
     const handleClickItem = React.useCallback(item => {
         if (item.metadata) {
             // const executionId = item.metadata as WorkflowExecutionIdentifier;

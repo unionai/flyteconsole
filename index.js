@@ -5,6 +5,7 @@
  */
 const morgan = require('morgan');
 const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 const env = require('./env');
 const { applyMiddleware } = require('./plugins');
 const corsProxy = require('./corsProxy.js');
@@ -84,16 +85,21 @@ if (process.env.NODE_ENV === 'production') {
 /* Set ADMIN_API_USE_SSL to https for CORS support */
 let server;
 const port = process.env.PORT || 3000;
-if(env.ADMIN_API_USE_SSL == "https"){
-    const fs = require('fs')
-    const https = require('https')
+if (env.ADMIN_API_USE_SSL == 'https') {
+    const fs = require('fs');
+    const https = require('https');
     var privateKey = fs.readFileSync('script/server.key');
     var certificate = fs.readFileSync('script/server.crt');
 
-    server = https.createServer({
-        key: privateKey,
-        cert: certificate
-    }, app).listen(port);
+    server = https
+        .createServer(
+            {
+                key: privateKey,
+                cert: certificate
+            },
+            app
+        )
+        .listen(port);
     console.log(`Server started with SSL: https://localhost:${port}/`);
 } else {
     server = app.listen(port, error => {

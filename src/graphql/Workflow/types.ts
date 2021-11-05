@@ -5,4 +5,5 @@ export type WorkflowListItem = {
     id: WorkflowId;
     closure: WorkflowClosure;
     lastExecutions: Execution[];
+    description: string;
 };

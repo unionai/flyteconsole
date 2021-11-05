@@ -17,6 +17,7 @@ const redirectParam = 'redirect_url';
 /** Converts a path into a full Admin API url */
 export function adminApiUrl(url: string) {
     const finalUrl = ensureSlashPrefixed(url);
+    console.log(env.ADMIN_API_URL);
     if (env.ADMIN_API_URL) {
         return `${env.ADMIN_API_URL}${apiPrefix}${finalUrl}`;
     }
@@ -30,6 +31,7 @@ export function getLoginUrl(redirectUrl: string = window.location.href) {
     const baseUrl = env.ADMIN_API_URL
         ? `${env.ADMIN_API_URL}${loginEndpoint}`
         : createLocalURL(loginEndpoint);
+    console.log(`${baseUrl}?${redirectParam}=${redirectUrl}`);
     return `${baseUrl}?${redirectParam}=${redirectUrl}`;
 }
 
