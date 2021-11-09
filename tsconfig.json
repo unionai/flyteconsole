@@ -25,5 +25,7 @@
     "strict": true,
     "target": "es6",
     "types": ["node", "webpack-env", "jest"]
-  }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "index.js", "env.js", "corsProxy.js", "plugins.js"],
+  "exclude": ["build", "dist", "node_modules"]
 }

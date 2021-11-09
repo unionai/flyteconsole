@@ -8,8 +8,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "build:prod": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' NODE_ENV=production webpack --config webpack.config.ts --mode=production",
-    "build": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' webpack --config webpack.config.ts --mode=development",
+    "build:client:prod": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' NODE_ENV=production webpack --config webpack.config.ts --mode=production",
+    "build:client": "TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\"}' webpack --config webpack.config.ts --mode=development",
+    "build:server:prod": "webpack --config webpack.server.config.js",
     "clean": "rm -rf dist",
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint-fix": "eslint . --ext .js,.ts,.tsx --fix",

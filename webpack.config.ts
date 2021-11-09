@@ -125,6 +125,7 @@ export const favIconIconsOptions = {
 export const sourceMapRule: webpack.Rule = {
     test: /\.js$/,
     enforce: 'pre',
+    exclude: [/node_modules/, /dist/, /build/],
     use: sourceMapLoader
 };
 

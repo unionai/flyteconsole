@@ -44,7 +44,10 @@ module.exports = {
                     'babel-loader',
                     {
                         loader: 'ts-loader',
-                        options: { transpileOnly: true }
+                        options: {
+                            configFile: './tsconfig.server.json',
+                            transpileOnly: true
+                        }
                     }
                 ]
             }
@@ -52,13 +55,17 @@ module.exports = {
     },
     externals: [nodeExternals({ whitelist: /@flyteorg/ })],
     plugins: [
-        new WebpackShellPluginNext({
-            onBuildEnd: {
-                scripts: ['yarn run:server'],
-                blocking: false,
-                parallel: true
-            }
-        }),
+        ...(NODE_ENV === 'development'
+            ? [
+                  new WebpackShellPluginNext({
+                      onBuildEnd: {
+                          scripts: ['yarn run:server'],
+                          blocking: false,
+                          parallel: true
+                      }
+                  })
+              ]
+            : []),
         new DefinePlugin({
             'process.env': JSON.stringify(process.env)
         })
