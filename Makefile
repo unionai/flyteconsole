@@ -19,6 +19,16 @@ build_prod:
 	yarn run clean
 	BASE_URL=/console yarn run build:prod
 
+.PHONY: build_client_prod
+build_client_prod:
+	yarn run clean
+	BASE_URL=/console yarn run build:client:prod
+
+.PHONY: build_server_prod
+build_server_prod:
+	yarn run clean
+	BASE_URL=/console yarn run build:server:prod
+
 # test_unit runs all unit tests
 .PHONY: test_unit
 test_unit:

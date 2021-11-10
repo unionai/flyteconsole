@@ -15,7 +15,13 @@ RUN : \
 COPY . .
 RUN : \
   # build
-  && make build_prod \
+  && make build_client_prod \
+  # place the runtime application in /app
+  && mv dist corsProxy.js index.js env.js plugins.js /app
+
+RUN : \
+  # build
+  && make build_server_prod \
   # place the runtime application in /app
   && mv dist corsProxy.js index.js env.js plugins.js /app
 
