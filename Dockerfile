@@ -1,5 +1,5 @@
 FROM node:14 as builder
-LABEL org.opencontainers.image.source https://github.com/lyft/flyteconsole
+LABEL org.opencontainers.image.source https://github.com/flyteorg/flyteconsole
 
 WORKDIR /code/flyteconsole
 COPY package*.json yarn.lock ./
@@ -23,10 +23,12 @@ RUN : \
   # build
   && make build_server_prod \
   # place the runtime application in /app
-  && mv dist corsProxy.js index.js env.js plugins.js /app
+  && mv build/index.js /app/graphql.js
+
+RUN npm update
 
 FROM gcr.io/distroless/nodejs
-LABEL org.opencontainers.image.source https://github.com/lyft/flyteconsole
+LABEL org.opencontainers.image.source https://github.com/flyteorg/flyteconsole
 
 COPY --from=builder /app app
 WORKDIR /app
@@ -34,5 +36,6 @@ ENV NODE_ENV=production PORT=8080
 EXPOSE 8080
 
 USER 1000
+
 
 CMD ["index.js"]
