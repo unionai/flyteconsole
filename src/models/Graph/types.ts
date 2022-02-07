@@ -56,4 +56,6 @@ export interface dNode {
     value?: any;
     nodes: Array<dNode>;
     edges: Array<dEdge>;
+    expanded?: boolean;
+    level?: number;
 }
